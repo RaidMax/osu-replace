@@ -71,6 +71,8 @@ namespace osu_replace
                 for (int i = 0; i < osuFileLines.Length; i++)
                 {
                     sectionMatch = Regex.Match(osuFileLines[i], @"^\[.*\]$");
+                    if (osuFileLines[i].Contains("BeatmapID:"))
+                        Console.Write("\r                                          \rWorking on [ID={0}]", osuFileLines[i].Split(':')[1]);
                     //currentLine = osuFileLines[i];
 
                     if (sectionMatch.Success)
@@ -97,7 +99,7 @@ namespace osu_replace
                                 File.Move(backgroundPath, backgroundPath + ".modified");
 
                             if (!SymbolicLink.makeLink(backgroundPath, imagePath))
-                                throw new osuReaderException(String.Format("Could not create symbolic link for file \"{0}\"", fileName));
+                                throw new osuReaderException(String.Format(Environment.NewLine + "Could not create symbolic link for file \"{0}\"", fileName));
 
                             return;
                         }
@@ -106,7 +108,7 @@ namespace osu_replace
             }
 
             else
-                throw new osuReaderException(String.Format("The .osu file \"{0}\" is corrupted [length={1}]", fileName, osuFileLines.Length));
+                throw new osuReaderException(String.Format(Environment.NewLine + "The .osu file \"{0}\" is corrupted [length={1}]", fileName, osuFileLines.Length));
         }
             
 

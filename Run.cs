@@ -7,8 +7,16 @@ namespace osu_replace
     {
         static void Main(string[] args)
         {
-            string replacementImagePath = String.Empty;
+            if (!cmdParsing.Load(args))
+            {
+                Console.WriteLine("Invalid arguments.");
+                Console.ReadLine();
+            }
+
             string beatmapDirectory = "Songs";
+
+            if (cmdParsing.beatmapDirectory != null)
+                beatmapDirectory = cmdParsing.beatmapDirectory;
 
             if (!Directory.Exists(beatmapDirectory))
             {
@@ -17,19 +25,31 @@ namespace osu_replace
                 return;
             }
 
-            if (args.Length > 0 && (args[0].Contains(".jpg") || args[0].Contains(".png")))
+            if (!cmdParsing.restoreImages)
             {
-                var resultSet = osuReplace.replaceImages(beatmapDirectory, args[0]);
-                Console.WriteLine(String.Format("===Finished: [replaced={0}] [failed/skipped={1}]===", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count));
+                Console.WriteLine("Replacing beatmap images...");
+
+                if (cmdParsing.backgroundColor != null)
+                    osuImage.createAndSaveBackground(Environment.CurrentDirectory + cmdParsing.backgroundImageLocation, cmdParsing.backgroundColor);
+
+                var resultSet = osuReplace.replaceImages(beatmapDirectory, Environment.CurrentDirectory + cmdParsing.backgroundImageLocation);
+                Console.WriteLine(Environment.NewLine + "===================");
+                Console.WriteLine("Finished");
+                Console.WriteLine("===================");
+                Console.WriteLine("[replaced={0}]\n[failed/skipped={1}]", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count);
             }
 
             else
             {
-                Console.WriteLine("Assuming you want to restore beatmaps images...");
+                Console.WriteLine("Restoring beatmap images...");
                 var resultSet = osuReplace.revertImages(beatmapDirectory);
-                Console.WriteLine(String.Format("=====================================================\nFinished: [restored={0}] [failed/skipped={1}]", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count));
+                Console.WriteLine("===================");
+                Console.WriteLine("Finished");
+                Console.WriteLine("===================");
+                Console.WriteLine("[restored={0}]\n[failed/skipped={1}]", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count);
             }
 
+            Console.WriteLine(Environment.NewLine + "Press any key to exit.");
             Console.ReadKey();
         }
     }

@@ -33,8 +33,6 @@ namespace osu_replace
                             // only need to go through one .osu file to find the background
                             break;
                         }
-
-
                     }
                 }
             }
