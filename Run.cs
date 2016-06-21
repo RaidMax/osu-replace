@@ -33,9 +33,7 @@ namespace osu_replace
                     osuImage.createAndSaveBackground(Environment.CurrentDirectory + cmdParsing.backgroundImageLocation, cmdParsing.backgroundColor);
 
                 var resultSet = osuReplace.replaceImages(beatmapDirectory, Environment.CurrentDirectory + cmdParsing.backgroundImageLocation);
-                Console.WriteLine(Environment.NewLine + "===================");
-                Console.WriteLine("Finished");
-                Console.WriteLine("===================");
+                Console.WriteLine("Finished!");
                 Console.WriteLine("[replaced={0}]\n[failed/skipped={1}]", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count);
             }
 
@@ -43,9 +41,7 @@ namespace osu_replace
             {
                 Console.WriteLine("Restoring beatmap images...");
                 var resultSet = osuReplace.revertImages(beatmapDirectory);
-                Console.WriteLine("===================");
-                Console.WriteLine("Finished");
-                Console.WriteLine("===================");
+                Console.WriteLine("Finished!");
                 Console.WriteLine("[restored={0}]\n[failed/skipped={1}]", resultSet.FindAll(x => x == true).Count, resultSet.FindAll(x => x == false).Count);
             }
 

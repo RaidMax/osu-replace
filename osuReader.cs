@@ -19,8 +19,6 @@ namespace osu_replace
         private string fileName;
         private string[] osuFileLines;
         public int beatmapID { get; private set; }
-
-
         private static int OSU_VERSION = 12;
 
         public osuReader(string fileName)
@@ -54,12 +52,13 @@ namespace osu_replace
 
             if (osuFileLines.Length > 1)
             {
-                // check the version
+                /* 
                 int fileVersion = 0;
                 bool validFileVersion = validVersion(Regex.Match(osuFileLines[0], "v[0-9]{2}$"), ref fileVersion);
 
-               // if (!validFileVersion)
-                   // Console.WriteLine(String.Format("Warning: The .osu file \"{0}\" version is unsupported [current={1}] [file's={2}]", fileName, OSU_VERSION, fileVersion));
+                if (!validFileVersion)
+                    Console.WriteLine(String.Format("Warning: The .osu file \"{0}\" version is unsupported [current={1}] [file's={2}]", fileName, OSU_VERSION, fileVersion));
+                */
 
                 if (!File.Exists(imagePath))
                     throw new osuReaderException(String.Format("The image file at \"{0}\" does not appear to exist", imagePath));
@@ -71,21 +70,12 @@ namespace osu_replace
                 for (int i = 0; i < osuFileLines.Length; i++)
                 {
                     sectionMatch = Regex.Match(osuFileLines[i], @"^\[.*\]$");
-                    if (osuFileLines[i].Contains("BeatmapID:"))
-                        Console.Write("\r                                          \rWorking on [ID={0}]", osuFileLines[i].Split(':')[1]);
+                    //if (osuFileLines[i].Contains("BeatmapID:"))
+                    //    Console.Write("\r                                          \rWorking on [ID={0}]", osuFileLines[i].Split(':')[1]);
                     //currentLine = osuFileLines[i];
 
-                    if (sectionMatch.Success)
-                    {
-                        // we're in a section header
-                        if (sectionMatch.Value == "[Events]")
-                        {
-                            inEventsSection = true;
-                        }
-
-                        else
-                            inEventsSection = false;
-                    }
+                    if (sectionMatch.Success)  // we're in a section header
+                        inEventsSection = (sectionMatch.Value == "[Events]") ? true : false;
 
                     if (inEventsSection)
                     {
