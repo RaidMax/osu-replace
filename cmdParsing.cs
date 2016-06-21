@@ -16,14 +16,15 @@ namespace osu_replace
         {
             try
             {
+                backgroundImageLocation = "BG.jpg";
                 // this allows dragging the file into the program
-                if (args.Length > 0)
+                if (args.Length > 0 && (args[0].Contains(".png") || args[0].Contains(".jpg")))
                     backgroundImageLocation = args[0];
 
                 var options = new NDesk.Options.OptionSet()
                 {
-                    {  "r|restore=", "restore all beatmap backgrounds", x => { if (x != null) restoreImages = Boolean.Parse(x); } },
-                    {  "c|color=", "color of beatmap backgrounds", c => { if ( c != null ) { backgroundColor = osuImage.colorFromString(c); backgroundImageLocation = "BG.jpg";  }} },
+                    {  "r|restore=", "restore all beatmap backgrounds", r => { if (r != null) restoreImages = Boolean.Parse(r); } },
+                    {  "c|color=", "color of beatmap backgrounds", c => { if ( c != null ) backgroundColor = osuImage.colorFromString(c); } },
                     {  "d|directory=", "relative directory of beatmap folder ( if different than `Songs` )", d => { if ( d != null ) beatmapDirectory = d; } },
                 };
 

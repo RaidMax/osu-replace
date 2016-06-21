@@ -14,7 +14,15 @@ namespace osu_replace
             using (SolidBrush B = new SolidBrush(Color.FromArgb(255, imageColor)))
                 filledImage.FillRectangle(B, 0, 0, image.Width, image.Height);
 
-            image.Save(imagePath);
+            try
+            {
+                image.Save(imagePath);
+            }
+
+            catch (Exception)
+            {
+                Console.WriteLine("Error: Could not save solid color bitmap");
+            }
         }
 
         public static Color colorFromString(string hexColor)
