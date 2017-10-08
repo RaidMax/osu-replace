@@ -1,7 +1,8 @@
-﻿using System;
+﻿#if DEPRECATED
+using System;
 using System.IO;
 
-namespace osu_replace
+namespace OsuReplace
 {
     class Run
     {
@@ -25,7 +26,7 @@ namespace osu_replace
                 return;
             }
 
-            if (!cmdParsing.restoreImages)
+            if (false)
             {
                 Console.WriteLine("Replacing beatmap images...");
 
@@ -50,3 +51,4 @@ namespace osu_replace
         }
     }
 }
+#endif

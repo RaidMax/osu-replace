@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-namespace osu_replace
+namespace OsuReplace.Code
 {
-    class SymbolicLink
+    public class SymbolicLink
     {
         [DllImport("kernel32.dll")]
         private static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, SymLinkType dwFlags);
@@ -17,7 +17,7 @@ namespace osu_replace
             Directory = 1
         }
 
-        public static bool makeLink(string symLink, string fileName)
+        public static bool MakeSymbolicLink(string symLink, string fileName)
         {
             return CreateSymbolicLink(symLink, fileName, SymLinkType.File);
         }

@@ -1,9 +1,10 @@
-﻿using System;
+﻿#if DEPRECATED
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace osu_replace
+namespace OsuReplace
 {
     class cmdParsing
     {
@@ -39,3 +40,4 @@ namespace osu_replace
         }
     }
 }
+#endif

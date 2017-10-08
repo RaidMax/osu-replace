@@ -2,7 +2,7 @@
 using System;
 using System.Globalization;
 
-namespace osu_replace
+namespace OsuReplace
 {
     class osuImage
     {

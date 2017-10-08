@@ -5,7 +5,7 @@ using System.Text;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace osu_replace
+namespace OsuReplace
 {
     class osuReaderException : Exception
     {
@@ -88,7 +88,7 @@ namespace osu_replace
                             if (!File.Exists(backgroundPath + ".modified") && File.Exists(backgroundPath))
                                 File.Move(backgroundPath, backgroundPath + ".modified");
 
-                            if (!SymbolicLink.makeLink(backgroundPath, imagePath))
+                            if (!SymbolicLink.MakeSymbolicLink(backgroundPath, imagePath))
                                 throw new osuReaderException(String.Format(Environment.NewLine + "Could not create symbolic link for file \"{0}\"", fileName));
 
                             return;

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 
-namespace osu_replace
+namespace OsuReplace
 {
     class osuReplace
     {
