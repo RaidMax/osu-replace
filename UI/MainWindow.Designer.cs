@@ -30,7 +30,9 @@ namespace OsuReplace.UI
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.ToolbarPanel = new System.Windows.Forms.Panel();
+            this.CurrentStatusPanel = new System.Windows.Forms.Panel();
             this.ExitButton = new System.Windows.Forms.Button();
             this.TitleBarLabel = new System.Windows.Forms.Label();
             this.ContentPanel = new System.Windows.Forms.Panel();
@@ -54,6 +56,7 @@ namespace OsuReplace.UI
             // ToolbarPanel
             // 
             this.ToolbarPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(56)))), ((int)(((byte)(56)))));
+            this.ToolbarPanel.Controls.Add(this.CurrentStatusPanel);
             this.ToolbarPanel.Controls.Add(this.ExitButton);
             this.ToolbarPanel.Controls.Add(this.TitleBarLabel);
             this.ToolbarPanel.Location = new System.Drawing.Point(0, 0);
@@ -61,6 +64,15 @@ namespace OsuReplace.UI
             this.ToolbarPanel.Name = "ToolbarPanel";
             this.ToolbarPanel.Size = new System.Drawing.Size(750, 40);
             this.ToolbarPanel.TabIndex = 0;
+            this.ToolbarPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ToolbarPanel_MouseMove);
+            // 
+            // CurrentStatusPanel
+            // 
+            this.CurrentStatusPanel.BackColor = System.Drawing.Color.Maroon;
+            this.CurrentStatusPanel.Location = new System.Drawing.Point(84, 12);
+            this.CurrentStatusPanel.Name = "CurrentStatusPanel";
+            this.CurrentStatusPanel.Size = new System.Drawing.Size(18, 18);
+            this.CurrentStatusPanel.TabIndex = 2;
             // 
             // ExitButton
             // 
@@ -114,7 +126,7 @@ namespace OsuReplace.UI
             // 
             this.ReplacementProgressLabel.AutoSize = true;
             this.ReplacementProgressLabel.ForeColor = System.Drawing.SystemColors.Control;
-            this.ReplacementProgressLabel.Location = new System.Drawing.Point(290, 39);
+            this.ReplacementProgressLabel.Location = new System.Drawing.Point(9, 115);
             this.ReplacementProgressLabel.Name = "ReplacementProgressLabel";
             this.ReplacementProgressLabel.Size = new System.Drawing.Size(26, 13);
             this.ReplacementProgressLabel.TabIndex = 8;
@@ -137,9 +149,9 @@ namespace OsuReplace.UI
             this.ReplacementProgressBar.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ReplacementProgressBar.Cursor = System.Windows.Forms.Cursors.AppStarting;
             this.ReplacementProgressBar.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(122)))), ((int)(((byte)(204)))));
-            this.ReplacementProgressBar.Location = new System.Drawing.Point(293, 9);
+            this.ReplacementProgressBar.Location = new System.Drawing.Point(12, 79);
             this.ReplacementProgressBar.Name = "ReplacementProgressBar";
-            this.ReplacementProgressBar.Size = new System.Drawing.Size(445, 23);
+            this.ReplacementProgressBar.Size = new System.Drawing.Size(268, 23);
             this.ReplacementProgressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.ReplacementProgressBar.TabIndex = 6;
             // 
@@ -236,6 +248,7 @@ namespace OsuReplace.UI
             this.Controls.Add(this.ToolbarPanel);
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainWindow";
             this.Text = "osu!replace";
             this.ToolbarPanel.ResumeLayout(false);
@@ -265,5 +278,6 @@ namespace OsuReplace.UI
         private System.ComponentModel.BackgroundWorker BackgroundWorkerThread;
         private System.Windows.Forms.CheckBox RestoreBeatmapsCheck;
         private System.Windows.Forms.Label ReplacementProgressLabel;
+        private System.Windows.Forms.Panel CurrentStatusPanel;
     }
 }

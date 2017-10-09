@@ -29,16 +29,28 @@ namespace OsuReplace.UI
                 if (Code.Validation.ValidOsuDirectory(OsuFolderBrowserDialog.SelectedPath))
                 {
                     OsuFolderLabel.Text = OsuFolderBrowserDialog.SelectedPath;
+                    string configPath = $"{ OsuFolderBrowserDialog.SelectedPath }{ Path.DirectorySeparatorChar}osu!.{ Environment.UserName}.cfg";
 
-                    OsuConfig = new Code.osu.Configuration($"{OsuFolderBrowserDialog.SelectedPath}{Path.DirectorySeparatorChar}osu!.{Environment.UserName}.cfg");
-                    if (OsuConfig.GetValue("Fullscreen") == "1")
+                    try
+                    {        
+                        OsuConfig = new Code.osu.Configuration(configPath);
+
+                        if (OsuConfig.GetValue("Fullscreen") == "1")
+                        {
+                            int fullscreenWidth = Convert.ToInt32(OsuConfig.GetValue("WidthFullscreen"));
+                            int fullscreenHeight = Convert.ToInt32(OsuConfig.GetValue("HeightFullscreen"));
+                            float ratio = (float)fullscreenWidth / (float)fullscreenHeight;
+
+                            BackgroundPreviewPanel.Width = (int)Math.Ceiling(BackgroundPreviewPanel.Height * ratio);
+                            ReplacementProgressBar.Width = BackgroundPreviewPanel.Width;
+                            ImagePickerButton.Location = new Point(BackgroundPreviewPanel.Location.X + BackgroundPreviewPanel.Width - ImagePickerButton.Width, ImagePickerButton.Location.Y);
+                            CurrentStatusPanel.BackColor = Color.Green;
+                        }
+                    }
+                    // if they don't have a config file for their user account.
+                    catch (FileNotFoundException)
                     {
-                        int fullscreenWidth = Convert.ToInt32(OsuConfig.GetValue("WidthFullscreen"));
-                        int fullscreenHeight = Convert.ToInt32(OsuConfig.GetValue("HeightFullscreen"));
-                        float ratio = (float)fullscreenWidth / (float)fullscreenHeight;
-
-                        BackgroundPreviewPanel.Width = (int)Math.Ceiling(BackgroundPreviewPanel.Height * ratio);
-                        ImagePickerButton.Location = new Point(BackgroundPreviewPanel.Location.X + BackgroundPreviewPanel.Width - ImagePickerButton.Width, ImagePickerButton.Location.Y);
+                        MessageBox.Show($"Could not find config file at {configPath}.", "Error", MessageBoxButtons.OK);
                     }
                 }
 
@@ -87,6 +99,7 @@ namespace OsuReplace.UI
             }
 
             ApplyButton.Enabled = false;
+            CurrentStatusPanel.BackColor = Color.Yellow;
             BackgroundWorkerThread.RunWorkerAsync();
         }
 
@@ -123,7 +136,8 @@ namespace OsuReplace.UI
 
             while (!beatmaps.ReplacementFinished())
             {
-                BackgroundWorkerThread.ReportProgress(beatmaps.GetReplacementProgress(),  new Code.osu.BeatmapState() {
+                BackgroundWorkerThread.ReportProgress(beatmaps.GetReplacementProgress(), new Code.osu.BeatmapState()
+                {
                     CurrentBeatmap = beatmaps.GetCurrentBeatmap()
                 });
                 if (!beatmaps.ReplaceNext(RestoreBeatmapsCheck.Checked))
@@ -132,7 +146,7 @@ namespace OsuReplace.UI
 
             BackgroundWorkerThread.ReportProgress(100, new Code.osu.BeatmapState()
             {
-                CurrentBeatmap = $"Completed" //- [{beatmaps.GetNumberBeatmaps() - beatmapsSkipped}] success [{beatmapsSkipped}] failed/skipped"
+                CurrentBeatmap = $"Completed - [{beatmaps.ReplacedBeatmapImages}] succeeded, [{beatmaps.GetSkippedFolders()}] skipped folders, [{beatmaps.BackgroundlessBeatmaps}] without backgrounds"
             });
         }
 
@@ -146,6 +160,13 @@ namespace OsuReplace.UI
         private void BackgroundWorkerThread_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
         {
             ApplyButton.Enabled = true;
+            CurrentStatusPanel.BackColor = Color.Green;
+        }
+
+        private void ToolbarPanel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+                Code.WindowsCallbacks.SendDragMessage(Handle);
         }
     }
 }

@@ -16,12 +16,18 @@ namespace OsuReplace.Code.osu
         private string Path;
         private int CurrentIndex;
         private string ImagePath;
+        public int BackgroundlessBeatmaps { get; private set; }
+        public int ReplacedBeatmapImages { get; private set; }
+        public int TotalImages { get; private set; }
 
         public Beatmaps(string path, string imgPath)
         {
             Path = path;
             ImagePath = imgPath;
             CurrentIndex = 0;
+            BackgroundlessBeatmaps = 0;
+            ReplacedBeatmapImages = 0;
+            TotalImages = 0;
             Load();
         }
 
@@ -51,19 +57,20 @@ namespace OsuReplace.Code.osu
                     {
                         string imagePath = Regex.Match(match.Value, "\".+\\..+\"").Value;
                         imagePath = $"{BeatmapFolders[CurrentIndex]}{System.IO.Path.DirectorySeparatorChar}{imagePath.Substring(1, imagePath.Length - 2)}";
+
                         try
                         {
                             bool symLink = (File.GetAttributes(imagePath) & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
+
                             if (!restore)
                             {
                                 if (!symLink)
                                 {
                                     File.Move(imagePath, $"{imagePath}.replaced");
                                     SymbolicLink.MakeSymbolicLink(imagePath, ImagePath);
+                                    ReplacedBeatmapImages++;
+                                    TotalImages++;
                                 }
-
-                                else
-                                    success = false;
                             }
 
                             else 
@@ -72,20 +79,22 @@ namespace OsuReplace.Code.osu
                                 {
                                     File.Delete(imagePath);
                                     File.Move($"{imagePath}.replaced", imagePath);
+                                    ReplacedBeatmapImages++;
+                                    TotalImages++;
                                 }
-
-                                else
-                                    success = false;
                             }
                         }
 
                         catch (FileNotFoundException)
                         {
-                            success = false;
+                            SymbolicLink.MakeSymbolicLink(imagePath, ImagePath);
                         }
-                        // stop after the first image occurance 
+                        // stop after the first image occurrence
                         break;
                     }
+
+                    if (line == beatmapFile[beatmapFile.Length - 1])
+                        BackgroundlessBeatmaps++;
                 }
             }
 
@@ -112,6 +121,11 @@ namespace OsuReplace.Code.osu
         public int GetNumberBeatmaps()
         {
             return BeatmapFolders.Count();
+        }
+
+        public int GetSkippedFolders()
+        {
+            return (ReplacedBeatmapImages == 0) ? BeatmapFolders.Count() : TotalImages - ReplacedBeatmapImages; 
         }
     }
 }

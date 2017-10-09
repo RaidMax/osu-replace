@@ -58,6 +58,9 @@
   <PropertyGroup>
     <ApplicationManifest>osu!replace.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon_osu!replace.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -75,6 +78,7 @@
     <Compile Include="Code\osu!\Configuration.cs" />
     <Compile Include="Code\Start.cs" />
     <Compile Include="Code\Validation.cs" />
+    <Compile Include="Code\WindowsCallbacks.cs" />
     <Compile Include="UI\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,6 +92,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="deprecated\Run.cs" />
     <Compile Include="Code\SymbolicLink.cs" />
+    <Content Include="icon_osu!replace.ico" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
