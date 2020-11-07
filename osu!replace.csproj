@@ -85,12 +85,7 @@
     <Compile Include="UI\MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Content Include="deprecated\cmdParsing.cs" />
-    <Content Include="deprecated\osuImage.cs" />
-    <Content Include="deprecated\osuReader.cs" />
-    <Content Include="deprecated\osuReplace.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Content Include="deprecated\Run.cs" />
     <Compile Include="Code\SymbolicLink.cs" />
     <Content Include="icon_osu!replace.ico" />
   </ItemGroup>
@@ -112,7 +107,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="deprecated\app.config" />
     <None Include="osu!replace.manifest">
       <SubType>Designer</SubType>
     </None>

@@ -6,7 +6,7 @@
 ### Download
 If you prefer to download the binary rather than compiling, the latest version can be found at [raidmax.org](https://raidmax.org/Downloads)
 ### Usage
-1. Launch osu!replace.exe
+1. Launch osu!replace.exe **MUST BE RUN AS ADMINISTRATOR**
 2. Click `osu! folder...` and navigate to your osu!directory
 3. Click `color...` or `image...` to select a color or replacement background
 4. Click `apply` to replace the beatmaps - if you have a lot of beatmaps, this may take a while  

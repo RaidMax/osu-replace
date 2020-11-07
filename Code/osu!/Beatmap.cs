@@ -60,6 +60,15 @@ namespace OsuReplace.Code.osu
 
                         try
                         {
+                            // we want to restore failed replacements
+                            if (!File.Exists(imagePath) && restore && File.Exists($"{imagePath}.replaced"))
+                            {
+                                File.Move($"{imagePath}.replaced", imagePath);
+                                ReplacedBeatmapImages++;
+                                TotalImages++;
+                                continue;
+                            }
+
                             bool symLink = (File.GetAttributes(imagePath) & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint;
 
                             if (!restore)
@@ -67,13 +76,21 @@ namespace OsuReplace.Code.osu
                                 if (!symLink)
                                 {
                                     File.Move(imagePath, $"{imagePath}.replaced");
-                                    SymbolicLink.MakeSymbolicLink(imagePath, ImagePath);
-                                    ReplacedBeatmapImages++;
-                                    TotalImages++;
+                                    if (!SymbolicLink.MakeSymbolicLink(imagePath, ImagePath))
+                                    {
+                                        // revert the change because the symlink failed
+                                        File.Move($"{imagePath}.replaced", imagePath);
+                                    }
+
+                                    else
+                                    {
+                                        ReplacedBeatmapImages++;
+                                        TotalImages++;
+                                    }
                                 }
                             }
 
-                            else 
+                            else
                             {
                                 if (symLink)
                                 {
@@ -125,7 +142,7 @@ namespace OsuReplace.Code.osu
 
         public int GetSkippedFolders()
         {
-            return (ReplacedBeatmapImages == 0) ? BeatmapFolders.Count() : TotalImages - ReplacedBeatmapImages; 
+            return (ReplacedBeatmapImages == 0) ? BeatmapFolders.Count() : TotalImages - ReplacedBeatmapImages;
         }
     }
 }
