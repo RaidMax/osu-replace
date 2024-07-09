@@ -1,96 +1,105 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Threading;
+using System.Linq;
 using System.Windows.Forms;
+using OsuReplace.Code;
+using OsuReplace.Code.Utilities;
 
 namespace OsuReplace.UI
 {
+    [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
+    [SuppressMessage("ReSharper", "LocalizableElement")]
     public partial class MainWindow : Form
     {
-        private Code.osu.Configuration OsuConfig;
+        private Configuration? _osuConfig;
 
         public MainWindow()
         {
+            AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+            {
+                Start.Logger.Error("An unhandled exception occurred: {Exception}", eventArgs.ExceptionObject);
+                MessageBox.Show("An unhandled exception occurred. Please report this to the developer.", "Error", MessageBoxButtons.OK);
+                Environment.Exit(1);
+            };
             InitializeComponent();
         }
 
-        private void ExitButton_MouseClick(object sender, MouseEventArgs e)
+        private void ExitButton_MouseClick(object sender, MouseEventArgs eventArgs)
         {
             Close();
         }
 
-        private void OsuFolderButton_Click(object sender, System.EventArgs e)
+        private void OsuFolderButton_Click(object sender, EventArgs eventArgs)
         {
             var result = OsuFolderBrowserDialog.ShowDialog();
-            if (result == DialogResult.OK)
+
+            if (result is not DialogResult.OK) return;
+
+            if (Code.Validation.ValidOsuDirectory(OsuFolderBrowserDialog.SelectedPath))
             {
-                if (Code.Validation.ValidOsuDirectory(OsuFolderBrowserDialog.SelectedPath))
+                OsuFolderLabel.Text = OsuFolderBrowserDialog.SelectedPath;
+                var configPath =
+                    $"{OsuFolderBrowserDialog.SelectedPath}{Path.DirectorySeparatorChar}osu!.{Environment.UserName}.cfg";
+
+                try
                 {
-                    OsuFolderLabel.Text = OsuFolderBrowserDialog.SelectedPath;
-                    string configPath = $"{ OsuFolderBrowserDialog.SelectedPath }{ Path.DirectorySeparatorChar}osu!.{ Environment.UserName}.cfg";
+                    _osuConfig = new Configuration(configPath).Load();
 
-                    try
-                    {        
-                        OsuConfig = new Code.osu.Configuration(configPath);
+                    if (_osuConfig.GetValue("Fullscreen") != "1") return;
+                    var fullscreenWidth = Convert.ToInt32(_osuConfig.GetValue("WidthFullscreen"));
+                    var fullscreenHeight = Convert.ToInt32(_osuConfig.GetValue("HeightFullscreen"));
+                    var ratio = fullscreenWidth / (float)fullscreenHeight;
 
-                        if (OsuConfig.GetValue("Fullscreen") == "1")
-                        {
-                            int fullscreenWidth = Convert.ToInt32(OsuConfig.GetValue("WidthFullscreen"));
-                            int fullscreenHeight = Convert.ToInt32(OsuConfig.GetValue("HeightFullscreen"));
-                            float ratio = (float)fullscreenWidth / (float)fullscreenHeight;
-
-                            BackgroundPreviewPanel.Width = (int)Math.Ceiling(BackgroundPreviewPanel.Height * ratio);
-                            ReplacementProgressBar.Width = BackgroundPreviewPanel.Width;
-                            ImagePickerButton.Location = new Point(BackgroundPreviewPanel.Location.X + BackgroundPreviewPanel.Width - ImagePickerButton.Width, ImagePickerButton.Location.Y);
-                            CurrentStatusPanel.BackColor = Color.Green;
-                        }
-                    }
-                    // if they don't have a config file for their user account.
-                    catch (FileNotFoundException)
+                    BackgroundPreviewPanel.Width = (int)Math.Ceiling(BackgroundPreviewPanel.Height * ratio);
+                    ReplacementProgressBar.Width = BackgroundPreviewPanel.Width;
+                    ImagePickerButton.Location = ImagePickerButton.Location with
                     {
-                        MessageBox.Show($"Could not find config file at {configPath}.", "Error", MessageBoxButtons.OK);
-                    }
+                        X = BackgroundPreviewPanel.Location.X + BackgroundPreviewPanel.Width - ImagePickerButton.Width
+                    };
+                    CurrentStatusPanel.BackColor = Color.Green;
                 }
-
-                else
+                // if they don't have a config file for their user account.
+                catch (FileNotFoundException)
                 {
-                    MessageBox.Show("That does not appear to be a valid osu! folder.", "Error", MessageBoxButtons.OK);
+                    MessageBox.Show($"Could not find config file at {configPath}.", "Error", MessageBoxButtons.OK);
                 }
+            }
+            else
+            {
+                MessageBox.Show("That does not appear to be a valid osu! folder.", "Error", MessageBoxButtons.OK);
             }
         }
 
-        private void ColorPickerButton_Click(object sender, System.EventArgs e)
+        private void ColorPickerButton_Click(object sender, EventArgs eventArgs)
         {
             var result = ColorPickerDialog.ShowDialog();
 
-            if (result == DialogResult.OK)
-            {
-                BackgroundPreviewPanel.BackgroundImage = null;
-                BackgroundPreviewPanel.BackColor = ColorPickerDialog.Color;
-            }
+            if (result is not DialogResult.OK) return;
+
+            BackgroundPreviewPanel.BackgroundImage = null;
+            BackgroundPreviewPanel.BackColor = ColorPickerDialog.Color;
         }
 
-        private void ImagePickerButton_Click(object sender, System.EventArgs e)
+        private void ImagePickerButton_Click(object sender, EventArgs eventArgs)
         {
             var result = ImagePickerDialog.ShowDialog();
 
-            if (result == DialogResult.OK)
-            {
-                try
-                {
-                    BackgroundPreviewPanel.BackgroundImage = Bitmap.FromFile(ImagePickerDialog.FileName);
-                }
+            if (result is not DialogResult.OK) return;
 
-                catch (Exception)
-                {
-                    MessageBox.Show("Could not open image file.", "Error", MessageBoxButtons.OK);
-                }
+            try
+            {
+                BackgroundPreviewPanel.BackgroundImage = Image.FromFile(ImagePickerDialog.FileName);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Could not open image file.", "Error", MessageBoxButtons.OK);
             }
         }
 
-        private void ApplyButton_Click(object sender, EventArgs e)
+        private void ApplyButton_Click(object sender, EventArgs eventArgs)
         {
             if (OsuFolderBrowserDialog.SelectedPath == string.Empty)
             {
@@ -103,70 +112,75 @@ namespace OsuReplace.UI
             BackgroundWorkerThread.RunWorkerAsync();
         }
 
-        private void BackgroundWorkerThread_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
+        private void BackgroundWorkerThread_DoWork(object sender, System.ComponentModel.DoWorkEventArgs eventArgs)
         {
-            string imagePath = $"{OsuConfig.GetValue("BeatmapDirectory")}{Path.DirectorySeparatorChar}bg.jpg";
-            int beatmapsSkipped = 0;
+            if (_osuConfig is null) throw new ApplicationException("osu! config file not loaded");
 
-            if (BackgroundPreviewPanel.BackgroundImage != null)
+            var beatMapLocation = _osuConfig.GetValue("BeatmapDirectory");
+            if (!Directory.Exists(beatMapLocation))
+            {
+                beatMapLocation = Path.Join(OsuFolderBrowserDialog.SelectedPath, beatMapLocation);
+            }
+
+            var imagePath = Path.Join(beatMapLocation, "bg.jpg");
+
+            if (BackgroundPreviewPanel.BackgroundImage is not null)
             {
                 BackgroundPreviewPanel.BackgroundImage.Save(imagePath, ImageFormat.Jpeg);
             }
-
             else
             {
                 var image = new Bitmap(1920, 1080);
                 var filledImage = Graphics.FromImage(image);
 
-                using (SolidBrush B = new SolidBrush(Color.FromArgb(255, BackgroundPreviewPanel.BackColor)))
-                    filledImage.FillRectangle(B, 0, 0, image.Width, image.Height);
+                using (var brush = new SolidBrush(Color.FromArgb(255, BackgroundPreviewPanel.BackColor)))
+                {
+                    filledImage.FillRectangle(brush, 0, 0, image.Width, image.Height);
+                }
 
                 try
                 {
                     image.Save(imagePath);
                 }
-
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Error: Could not save solid color bitmap");
+                    Console.WriteLine($"Error: Could not save solid color bitmap: {ex.Message}");
                 }
             }
 
-            var beatmaps = new Code.osu.Beatmaps(OsuConfig.GetValue("BeatmapDirectory"), imagePath);
-
-            while (!beatmaps.ReplacementFinished())
+            var beatMaps = new BeatMap(imagePath, Directory.GetDirectories(beatMapLocation).ToList());
+            Start.Logger.Information("Starting replacement of beat map: {BeatMapLocation}", beatMapLocation);
+            while (!beatMaps.ReplacementFinished())
             {
-                BackgroundWorkerThread.ReportProgress(beatmaps.GetReplacementProgress(), new Code.osu.BeatmapState()
-                {
-                    CurrentBeatmap = beatmaps.GetCurrentBeatmap()
-                });
-                if (!beatmaps.ReplaceNext(RestoreBeatmapsCheck.Checked))
-                    beatmapsSkipped++;
+                BackgroundWorkerThread.ReportProgress(beatMaps.GetReplacementProgress(), new BeatMapState(beatMaps.GetCurrentBeatMap()));
+                beatMaps.ReplaceNext(RestoreBeatmapsCheck.Checked);
             }
 
-            BackgroundWorkerThread.ReportProgress(100, new Code.osu.BeatmapState()
-            {
-                CurrentBeatmap = $"Completed - [{beatmaps.ReplacedBeatmapImages}] succeeded, [{beatmaps.GetSkippedFolders()}] skipped folders, [{beatmaps.BackgroundlessBeatmaps}] without backgrounds"
-            });
+            // @formatter:off
+            var currentBeatMap = $"Completed - [{beatMaps.BackgroundsChanged}] succeeded, [{beatMaps.SkippedBeatMaps}] skipped/duplicate background images, [{beatMaps.BeatMapsBackgroundNotFound}] without backgrounds";
+            // @formatter:on
+            BackgroundWorkerThread.ReportProgress(100, new BeatMapState(currentBeatMap));
         }
 
-        private void BackgroundWorkerThread_ProgressChanged(object sender, System.ComponentModel.ProgressChangedEventArgs e)
+        private void BackgroundWorkerThread_ProgressChanged(object? sender, System.ComponentModel.ProgressChangedEventArgs eventArgs)
         {
-            var state = (Code.osu.BeatmapState)(e.UserState);
-            ReplacementProgressLabel.Text = state.CurrentBeatmap;
-            ReplacementProgressBar.Value = e.ProgressPercentage;
+            var state = eventArgs.UserState as BeatMapState;
+            ReplacementProgressLabel.Text = state?.CurrentBeatMap;
+            ReplacementProgressBar.Value = eventArgs.ProgressPercentage;
         }
 
-        private void BackgroundWorkerThread_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs e)
+        private void BackgroundWorkerThread_RunWorkerCompleted(object sender, System.ComponentModel.RunWorkerCompletedEventArgs eventArgs)
         {
             ApplyButton.Enabled = true;
             CurrentStatusPanel.BackColor = Color.Green;
         }
 
-        private void ToolbarPanel_MouseMove(object sender, MouseEventArgs e)
+        private void ToolbarPanel_MouseMove(object sender, MouseEventArgs eventArgs)
         {
-            if (e.Button == MouseButtons.Left)
-                Code.WindowsCallbacks.SendDragMessage(Handle);
+            if (eventArgs.Button == MouseButtons.Left)
+            {
+                WindowsCallbacks.SendDragMessage(Handle);
+            }
         }
     }
 }
